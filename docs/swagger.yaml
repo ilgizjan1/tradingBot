@@ -1,0 +1,285 @@
+basePath: /
+definitions:
+  handler.errResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  handler.signInInput:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  krakenFuturesSDK.SendOrderArguments:
+    properties:
+      cli_order_id:
+        type: string
+      limit_price:
+        type: number
+      order_type:
+        type: string
+      reduce_only:
+        type: boolean
+      side:
+        type: string
+      size:
+        type: integer
+      stop_price:
+        type: number
+      symbol:
+        type: string
+      trigger_signal:
+        type: string
+    required:
+    - order_type
+    - side
+    - size
+    - symbol
+    type: object
+  models.Order:
+    properties:
+      client_order_id:
+        type: string
+      filled:
+        type: number
+      id:
+        type: string
+      last_update_timestamp:
+        type: string
+      price:
+        type: number
+      quantity:
+        type: number
+      side:
+        type: string
+      symbol:
+        type: string
+      timestamp:
+        type: string
+      type:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.User:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+      private_api_key:
+        type: string
+      public_api_key:
+        type: string
+      username:
+        type: string
+    required:
+    - name
+    - password
+    - private_api_key
+    - public_api_key
+    - username
+    type: object
+host: localhost:8000
+info:
+  contact: {}
+  description: API Server for Trade-bot Application
+  title: Trade-bot API
+  version: "1.0"
+paths:
+  /auth/logout:
+    delete:
+      description: logout account
+      operationId: logout-account
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: message
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Logout
+      tags:
+      - auth
+  /auth/sign-in:
+    post:
+      consumes:
+      - application/json
+      description: login
+      operationId: login
+      parameters:
+      - description: credentials
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handler.signInInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: access_token
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+      summary: SignIn
+      tags:
+      - auth
+  /auth/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: create account
+      operationId: create-account
+      parameters:
+      - description: account info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+      summary: SignUp
+      tags:
+      - auth
+  /orderManager/my-orders:
+    get:
+      description: get all orders of user
+      operationId: myOrders
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Order'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: MyOrders
+      tags:
+      - orderManager
+  /orderManager/send-order:
+    post:
+      consumes:
+      - application/json
+      description: sendOrder to kraken futures API
+      operationId: sendOrder
+      parameters:
+      - description: send order info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/krakenFuturesSDK.SendOrderArguments'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: order_id
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/handler.errResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: SendOrder
+      tags:
+      - orderManager
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
